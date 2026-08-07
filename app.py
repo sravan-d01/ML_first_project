@@ -1,5 +1,7 @@
 from flask import Flask, render_template
-from load_data import load_data, get_data_summary
+from load_data import get_data_summary
+from placement_eda import run_eda
+import traceback
 
 app = Flask(__name__)
 
@@ -15,14 +17,8 @@ def data_loading():
     """Loads the dataset (server-side) and renders the summary into the page."""
     error = None
     summary = None
-
     try:
-        # Load the CSV file
-        df = load_data()
-
-        # Generate the summary
-        summary = get_data_summary(df)
-
+        summary = get_data_summary()
     except FileNotFoundError as e:
         error = str(e)
     except Exception as e:
@@ -34,6 +30,24 @@ def data_loading():
         summary=summary,
         error=error,
     )
+@app.route("/eda")
+def eda_page():
+   error = None
+   results = None
+   try:
+       results = run_eda()
+   except FileNotFoundError as e:
+       error = str(e)
+   except Exception as e:
+       traceback.print_exc()
+       error = str(e)
+
+   return render_template(
+       "eda.html",
+       active="eda",
+       results=results,
+       error=error,
+   )
 
 
 if __name__ == "__main__":
